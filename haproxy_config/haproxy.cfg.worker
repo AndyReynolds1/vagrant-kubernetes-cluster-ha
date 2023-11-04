@@ -1,0 +1,18 @@
+frontend http-in
+  bind *:80
+  default_backend webservers
+
+backend webservers
+  balance roundrobin
+  option httpchk GET /
+  option forwardfor
+  option http-server-close
+  server worker-1 192.168.56.15:30001 check
+  server worker-2 192.168.56.16:30001 check
+  server worker-3 192.168.56.17:30001 check
+
+listen stats
+  bind 192.168.56.11:8080
+  mode http
+  stats enable
+  stats uri /

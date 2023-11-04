@@ -1,0 +1,35 @@
+frontend api-server-in
+  bind *:6443
+  default_backend api-server
+
+frontend dashboard-in
+  bind *:30000
+  default_backend dashboard
+
+backend api-server
+  option httpchk GET /healthz
+  http-check expect status 200
+  mode tcp
+  option ssl-hello-chk
+  balance roundrobin
+  server master-1 192.168.56.12:6443 maxconn 32 check
+  server master-2 192.168.56.13:6443 maxconn 32 check
+  server master-3 192.168.56.14:6443 maxconn 32 check
+
+backend dashboard
+  option httpchk GET /
+  http-check expect status 200
+  mode tcp
+  #option forwardfor
+  #option http-server-close
+  #option ssl-hello-chk
+  balance roundrobin
+  server master-1 192.168.56.12:30000 maxconn 32 check check-ssl verify none
+  server master-2 192.168.56.13:30000 maxconn 32 check check-ssl verify none
+  server master-3 192.168.56.14:30000 maxconn 32 check check-ssl verify none
+
+listen stats
+  bind 192.168.56.10:8080
+  mode http
+  stats enable
+  stats uri /
